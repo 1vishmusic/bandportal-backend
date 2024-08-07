@@ -3,7 +3,7 @@ package cz.cvut.fit.stehlvo2.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import cz.cvut.fit.stehlvo2.db.dao.*
-import io.github.cdimascio.dotenv.Dotenv
+import io.github.cdimascio.dotenv.dotenv
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -11,7 +11,9 @@ import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun createHikariConfig(): HikariDataSource {
-    val dotenv = Dotenv.load()
+    val dotenv = dotenv {
+        ignoreIfMissing = true
+    }
     val config = HikariConfig()
 
     config.driverClassName = dotenv["DB_DRIVER"]
