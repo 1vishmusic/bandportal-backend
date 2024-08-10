@@ -2,22 +2,31 @@ package cz.cvut.fit.stehlvo2.routing
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     routing {
-        route("/band") {
-            bandRoute()
+        route("/exchange-code") {
+            exchangeCodeRoute()
         }
-        route("/place") {
-            placeRoute()
-        }
-        route("/event") {
-            eventRoute()
-        }
-        route("/event/ticket") {
-            ticketRoute()
+        authenticate {
+            route("/user") {
+                userRoute()
+            }
+            route("/band") {
+                bandRoute()
+            }
+            route("/place") {
+                placeRoute()
+            }
+            route("/event") {
+                eventRoute()
+            }
+            route("/event/ticket") {
+                ticketRoute()
+            }
         }
     }
 
