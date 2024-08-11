@@ -8,6 +8,12 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     routing {
+        // Endpoints for website
+        route("/web") {
+            webRoute()
+        }
+
+        // Endpoints for bandportal
         route("/exchange-code") {
             exchangeCodeRoute()
         }
