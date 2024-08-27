@@ -2,6 +2,7 @@ package cz.cvut.fit.stehlvo2.service.gallery
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.serialization.XmlValue
@@ -49,7 +50,9 @@ data class Photo(
 @XmlSerialName("title", "http://search.yahoo.com/mrss/")
 @Serializable
 data class MediaTitle(
-    val type: String? = null
+    val type: String? = null,
+    @XmlValue
+    val content: String? = null
 )
 
 @XmlSerialName("description", "http://search.yahoo.com/mrss/")
