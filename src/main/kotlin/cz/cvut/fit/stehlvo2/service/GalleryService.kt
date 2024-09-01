@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.xml.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 import cz.cvut.fit.stehlvo2.routing.response.AlbumResponse as DownstreamAlbumResponse
 
 object GalleryService {
@@ -43,6 +42,7 @@ object GalleryService {
         if(responses == albumResponse) {
             return galleryCache!!
         }
+        albumResponse = responses
 
         val albumsResponse = mutableListOf<Pair<LocalDate, DownstreamAlbumResponse>>()
         for(response in responses) {
@@ -76,8 +76,7 @@ object GalleryService {
         }
 
         galleryCache = albumsResponse
-            .sortedByDescending { it.first }
-            .map { it.second }
+            .sortedByDescending { it.first }.map { it.second }
 
         return galleryCache!!
     }
