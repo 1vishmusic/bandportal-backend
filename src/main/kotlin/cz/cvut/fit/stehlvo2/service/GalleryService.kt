@@ -10,10 +10,11 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.xml.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.reflect.jvm.internal.impl.descriptors.Visibilities.Local
 import cz.cvut.fit.stehlvo2.routing.response.AlbumResponse as DownstreamAlbumResponse
 
 object GalleryService {
-    private var albumResponse: AlbumListResponse? = null
+    private var albumResponse: List<AlbumListResponse>? = null
     private var galleryCache: List<DownstreamAlbumResponse>? = null
 
     private val client = HttpClient(CIO) {
@@ -25,35 +26,58 @@ object GalleryService {
     suspend fun readAlbums(): List<DownstreamAlbumResponse> {
         val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-        val response: AlbumListResponse = client.get("https://www.rajce.idnes.cz/export/user/1vish/albums.rss").body()
-        if(response == albumResponse) {
+        val responses = mutableListOf<AlbumListResponse>()
+
+        var page = 0
+        while(true) {
+            val response: AlbumListResponse =
+                client.get("https://www.rajce.idnes.cz/export/user/1vish/albums.rss?page=$page").body()
+            if (response.channel.items.isEmpty()) {
+                break
+            }
+
+            responses.add(response)
+            ++page
+        }
+
+        if(responses == albumResponse) {
             return galleryCache!!
         }
 
-        albumResponse = response
-        galleryCache = response.channel.items
-            .sortedByDescending {
+        val albumsResponse = mutableListOf<Pair<LocalDate, DownstreamAlbumResponse>>()
+        for(response in responses) {
+            response.channel.items.forEach {
+                val albumResponse: AlbumResponse = client.get(it.guid + "/media.rss").body()
+
+                // Parsing shot date from description
                 val dateRegex = """\d{2}\.\d{2}\.\d{4}""".toRegex()
                 val result = dateRegex.find(it.description)
 
+                val date: LocalDate;
                 if(result === null) {
                     println("No date found in " + it.title)
-                    LocalDate.now()
+                    date = LocalDate.now()
                 } else {
-                    LocalDate.parse(result.value, formatter)
+                    date = LocalDate.parse(result.value, formatter)
                 }
-            }
-            .map {
-                val albumResponse: AlbumResponse = client.get(it.guid + "/media.rss").body()
 
-                DownstreamAlbumResponse(
-                    it.title.substring(8),
-                    it.description,
-                    it.image.url.replace("thumb", "images"),
-                    albumResponse.channel.items
-                        .map { p -> p.mediaContent.url }
-                )
+                albumsResponse.add(Pair(
+                    date,
+                    DownstreamAlbumResponse(
+                        it.title.substring(8),
+                        it.description,
+                        it.image.url.replace("thumb", "images"),
+                        albumResponse.channel.items.map {
+                                p -> p.mediaContent.url
+                        }
+                    )
+                ))
             }
+        }
+
+        galleryCache = albumsResponse
+            .sortedByDescending { it.first }
+            .map { it.second }
 
         return galleryCache!!
     }
