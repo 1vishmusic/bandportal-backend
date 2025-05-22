@@ -1,5 +1,9 @@
 package cz.cvut.fit.stehlvo2.service
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
 import cz.cvut.fit.stehlvo2.config.Config
 import io.ktor.client.engine.cio.*
 import cz.cvut.fit.stehlvo2.repository.auth.SessionRepository
@@ -21,6 +25,9 @@ object SessionService {
             json()
         }
     }
+    private val idTokenVerifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(), GsonFactory.getDefaultInstance())
+        .setAudience(listOf(Config.getOAuthClientId()))
+        .build()
 
     fun isSessionTokenValid(token: String): Boolean {
         val session = SessionRepository.readByToken(token)
@@ -38,6 +45,27 @@ object SessionService {
 
     fun getSession(token: String): Session? {
         return SessionRepository.readByToken(token)
+    }
+
+    suspend fun handleIdTokenExchange(idToken: String): Session? {
+        val response: GoogleIdToken? = idTokenVerifier.verify(idToken)
+
+        if(response == null) {
+            println("Authentication failed, invalid id token")
+            return null
+        }
+
+        val payload = response.payload
+
+        return SessionRepository.create(
+            Session(
+                username = payload["name"] as String,
+                email = payload.email,
+                sessionToken = UUID.randomUUID().toString(),
+                issueTime = (System.currentTimeMillis() / 1000).toInt(),
+                expiresIn = -1 // TODO
+            )
+        )
     }
 
     suspend fun handleCodeExchange(code: String): Session? {
@@ -90,7 +118,6 @@ object SessionService {
                 username = userResponseObj.name,
                 email = userResponseObj.email,
                 sessionToken = UUID.randomUUID().toString(),
-                bearerToken = tokenResponseObj.access_token,
                 issueTime = (System.currentTimeMillis() / 1000).toInt(),
                 expiresIn = tokenResponseObj.expires_in
             )

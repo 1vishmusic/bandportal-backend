@@ -1,7 +1,9 @@
 package cz.cvut.fit.stehlvo2.routing
 
 import cz.cvut.fit.stehlvo2.routing.request.CodeExchangeRequest
+import cz.cvut.fit.stehlvo2.routing.request.IdTokenExchangeRequest
 import cz.cvut.fit.stehlvo2.routing.response.CodeExchangeResponse
+import cz.cvut.fit.stehlvo2.routing.response.IdTokenExchangeResponse
 import cz.cvut.fit.stehlvo2.routing.response.UserResponse
 import cz.cvut.fit.stehlvo2.service.SessionService
 import io.ktor.http.*
@@ -21,6 +23,20 @@ fun Route.exchangeCodeRoute() {
         return@post call.respond(
             status = HttpStatusCode.OK,
             message = CodeExchangeResponse(session.sessionToken)
+        )
+    }
+}
+
+fun Route.exchangeIdTokenRoute() {
+    post {
+        val exchangeIdTokenRequest = call.receive<IdTokenExchangeRequest>()
+
+        val session = SessionService.handleIdTokenExchange(exchangeIdTokenRequest.idToken)
+            ?: return@post call.respond(HttpStatusCode.Unauthorized)
+
+        return@post call.respond(
+            status = HttpStatusCode.OK,
+            message = IdTokenExchangeResponse(session.sessionToken)
         )
     }
 }

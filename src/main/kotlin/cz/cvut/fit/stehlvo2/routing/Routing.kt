@@ -17,6 +17,9 @@ fun Application.configureRouting() {
         route("/exchange-code") {
             exchangeCodeRoute()
         }
+        route("/exchange-id-token") {
+            exchangeIdTokenRoute()
+        }
         authenticate {
             route("/user") {
                 userRoute()

@@ -52,6 +52,8 @@ dependencies {
 
     implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
 
+    implementation("com.google.api-client:google-api-client:2.5.0")
+
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }
