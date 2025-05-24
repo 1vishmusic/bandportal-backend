@@ -48,24 +48,32 @@ object SessionService {
     }
 
     suspend fun handleIdTokenExchange(idToken: String): Session? {
-        val response: GoogleIdToken? = idTokenVerifier.verify(idToken)
+        try {
+            val response: GoogleIdToken? = idTokenVerifier.verify(idToken)
 
-        if(response == null) {
-            println("Authentication failed, invalid id token")
+            if(response == null) {
+                println("Authentication failed, invalid id token")
+                return null
+            }
+
+            val payload = response.payload
+            if(payload.email != "band@1vishmusic.com") {
+                println("Authentication failed, invalid email")
+                return null
+            }
+
+            return SessionRepository.create(
+                Session(
+                    username = payload["name"] as String,
+                    email = payload.email,
+                    sessionToken = UUID.randomUUID().toString(),
+                    issueTime = (System.currentTimeMillis() / 1000).toInt(),
+                    expiresIn = -1 // TODO
+                )
+            )
+        } catch (_: Exception) {
             return null
         }
-
-        val payload = response.payload
-
-        return SessionRepository.create(
-            Session(
-                username = payload["name"] as String,
-                email = payload.email,
-                sessionToken = UUID.randomUUID().toString(),
-                issueTime = (System.currentTimeMillis() / 1000).toInt(),
-                expiresIn = -1 // TODO
-            )
-        )
     }
 
     suspend fun handleCodeExchange(code: String): Session? {
