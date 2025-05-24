@@ -1,5 +1,6 @@
 package cz.cvut.fit.stehlvo2.plugins
 
+import cz.cvut.fit.stehlvo2.repository.auth.SessionRepository
 import cz.cvut.fit.stehlvo2.service.SessionService
 import io.ktor.server.application.*
 import io.ktor.server.auth.*

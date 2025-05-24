@@ -3,7 +3,7 @@ package cz.cvut.fit.stehlvo2.repository.auth
 import cz.cvut.fit.stehlvo2.service.auth.Session
 
 object SessionRepository {
-    private val sessions: MutableMap<String, Session> = mutableMapOf()
+    val sessions: MutableMap<String, Session> = mutableMapOf()
 
     fun create(entity: Session): Session {
         sessions[entity.sessionToken] = entity

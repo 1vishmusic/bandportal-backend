@@ -68,7 +68,7 @@ object SessionService {
                     email = payload.email,
                     sessionToken = UUID.randomUUID().toString(),
                     issueTime = (System.currentTimeMillis() / 1000).toInt(),
-                    expiresIn = -1 // TODO
+                    expiresIn = 60 * 24 * 7 * 4 // 1 Month
                 )
             )
         } catch (_: Exception) {
